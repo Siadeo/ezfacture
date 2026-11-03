@@ -8,8 +8,7 @@ L'application fonctionne entièrement en
 **mode local** (numéros de facture stockés sur disque).  
 
 EzFacture garantit une numérotation **chronologique, continue et
-sans rupture de séquence** des factures, sans jamais « réserver » un numéro qui pourrait
-ensuite être perdu, voir [Numérotation des factures](#numérotation-des-factures).
+sans rupture de séquence** des factures, voir [Numérotation des factures](#numérotation-des-factures).
 
 ## Prérequis
 

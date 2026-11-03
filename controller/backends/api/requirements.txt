@@ -1,0 +1,4 @@
+# Dépendances spécifiques au backend API (privé).
+# À installer en plus des requirements.txt publics pour activer le mode API.
+requests
+flask

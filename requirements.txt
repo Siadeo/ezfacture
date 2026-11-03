@@ -1,0 +1,14 @@
+customtkinter
+pywin32
+xlwings==0.31.2
+requests
+lxml
+saxonche
+Jinja2
+py-money
+factur-x==5.1
+pikepdf==10.10.0
+pyinstaller
+pandas
+openpyxl
+packaging>=24.2

@@ -11,7 +11,7 @@
         </ram:BusinessProcessSpecifiedDocumentContextParameter>
         {% endif %}
         <ram:GuidelineSpecifiedDocumentContextParameter>
-            <ram:ID>urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic</ram:ID>
+            <ram:ID>urn:cen.eu:en16931:2017</ram:ID>
         </ram:GuidelineSpecifiedDocumentContextParameter>
     </rsm:ExchangedDocumentContext>
     <rsm:ExchangedDocument>
@@ -69,8 +69,8 @@
                         <udt:Indicator>false</udt:Indicator>
                     </ram:ChargeIndicator>
                     <ram:ActualAmount>{{ line.discount }}</ram:ActualAmount>
-                    <ram:ReasonCode>discount</ram:ReasonCode>
-                    <ram:Reason>discount</ram:Reason>
+                    <ram:ReasonCode>95</ram:ReasonCode>
+                    <ram:Reason>Remise</ram:Reason>
                 </ram:SpecifiedTradeAllowanceCharge>
                 {% endif %}
                 {% if line.charge %}
@@ -79,8 +79,8 @@
                         <udt:Indicator>true</udt:Indicator>
                     </ram:ChargeIndicator>
                     <ram:ActualAmount>{{ line.charge }}</ram:ActualAmount>
-                    <ram:ReasonCode>charge</ram:ReasonCode>
-                    <ram:Reason>charge</ram:Reason>
+                    <ram:ReasonCode>ZZZ</ram:ReasonCode>
+                    <ram:Reason>Frais</ram:Reason>
                 </ram:SpecifiedTradeAllowanceCharge>
                 {% endif %}
                 <ram:SpecifiedTradeSettlementLineMonetarySummation>
@@ -109,7 +109,11 @@
                     <ram:CityName>{{ invoice.seller_party.postal_address.city_name }}</ram:CityName>
                     <ram:CountryID>{{ invoice.seller_party.postal_address.country }}</ram:CountryID>
                 </ram:PostalTradeAddress>
-                {% if invoice.seller_party.mail %}
+                {% if invoice.seller_party.siren and invoice.seller_party.country == 'FR' %}
+                <ram:URIUniversalCommunication>
+                    <ram:URIID schemeID="0225">{{ invoice.seller_party.siren }}</ram:URIID>
+                </ram:URIUniversalCommunication>
+                {% elif invoice.seller_party.mail %}
                 <ram:URIUniversalCommunication>
                     <ram:URIID schemeID="EM">{{ invoice.seller_party.mail }}</ram:URIID>
                 </ram:URIUniversalCommunication>
@@ -136,7 +140,11 @@
                     <ram:CityName>{{ invoice.buyer_party.postal_address.city_name }}</ram:CityName>
                     <ram:CountryID>{{ invoice.buyer_party.postal_address.country }}</ram:CountryID>
                 </ram:PostalTradeAddress>
-                {% if invoice.buyer_party.mail %}
+                {% if invoice.buyer_party.siren and invoice.buyer_party.country == 'FR' %}
+                <ram:URIUniversalCommunication>
+                    <ram:URIID schemeID="0225">{{ invoice.buyer_party.siren }}</ram:URIID>
+                </ram:URIUniversalCommunication>
+                {% elif invoice.buyer_party.mail %}
                 <ram:URIUniversalCommunication>
                     <ram:URIID schemeID="EM">{{ invoice.buyer_party.mail }}</ram:URIID>
                 </ram:URIUniversalCommunication>

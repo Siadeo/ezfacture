@@ -368,6 +368,32 @@ class Entity:
         return digits[:9] if len(digits) >= 9 else None
 
     @property
+    def expected_vat(self):
+        """The French VAT number computed from the SIREN.
+
+        Retourne ``None`` si le SIREN n'est pas disponible.
+        """
+        siren = self.siren
+        if siren is None:
+            return None
+        key = (12 + 3 * (int(siren) % 97)) % 97
+        return f"FR{key:02d}{siren}"
+
+    def vat_matches_siren(self):
+        """Returns False if a French VAT number does not match the SIREN.
+
+        Les numéros non français et les entités sans SIREN ne sont pas
+        contrôlés. Une clé alphanumérique (ancien format) n'est pas calculable :
+        seul le SIREN contenu dans le numéro est alors comparé.
+        """
+        vat = "".join(str(self._tax_scheme_id or "").split()).upper()
+        if not vat.startswith("FR") or self.siren is None:
+            return True
+        if vat[2:4].isdigit():
+            return vat == self.expected_vat
+        return vat[4:] == self.siren
+
+    @property
     def registration_name(self):
         """The registration name of the Entity.
         """

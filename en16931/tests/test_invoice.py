@@ -7,6 +7,9 @@ from en16931.entity import Entity
 from en16931.invoice import Invoice
 from en16931.invoice_line import InvoiceLine
 from en16931.tax import Tax
+from facturx import get_level, xml_check_schematron, xml_check_xsd
+from lxml import etree
+from models.facture import Facture
 
 
 class TestInvoiceAttributes:
@@ -211,3 +214,58 @@ class TestInvoiceXMLGeneration:
         path = '/tmp/custom_invoice.xml'
         custom_invoice.save(path)
         assert os.path.exists(path)
+
+
+def _party(name, siret, vat, country="FR"):
+    return Entity(name=name, tax_scheme="VAT", tax_scheme_id=vat, country=country,
+                  party_legal_entity_id=siret, registration_name=name,
+                  mail="contact@example.com", address="1 rue de la Paix",
+                  postalzone="75001", city="Paris")
+
+
+def _facture(discount=None, buyer=None):
+    facture = Facture(invoice_id="FAC-1", invoice_type_code="380", profile_id="B4")
+    facture.seller_party = _party("Vendeur", "53800624800016", "FR60538006248")
+    facture.buyer_party = buyer or _party("Acheteur", "82539508000021", "FR01825395080")
+    date = datetime(2026, 11, 6)
+    facture.issue_date = facture.delivery_date = facture.due_date = date
+    facture.add_lines_from([InvoiceLine(
+        quantity=2, unit_code="EA", price=490, item_name="Article", currency="EUR",
+        tax_category="S", tax_percent=0.055, tax_name="S0.055", discount=discount)])
+    facture.paid_amount = 0
+    facture.payable_amount = str(facture.tax_inclusive_amount)
+    facture.notes = [{"code": code, "content": f"Mention {code}"}
+                     for code in ("PMD", "PMT", "AAB", "REG", "ABL")]
+    return facture
+
+
+class TestFacturxXml:
+
+    def test_profile_en16931(self):
+        xml = _facture().to_xml()
+        assert "<ram:ID>urn:cen.eu:en16931:2017</ram:ID>" in xml
+        assert "urn:factur-x.eu:1p0:basic" not in xml
+
+    def test_electronic_address_uses_siren(self):
+        xml = _facture().to_xml()
+        assert '<ram:URIID schemeID="0225">538006248</ram:URIID>' in xml
+        assert '<ram:URIID schemeID="0225">825395080</ram:URIID>' in xml
+        assert 'schemeID="EM"' not in xml
+
+    def test_foreign_buyer_keeps_mail(self):
+        buyer = _party("Buyer", "ES34626691F", "ES34626691F", country="ES")
+        buyer.party_legal_entity_id = "123456789012"
+        xml = _facture(buyer=buyer).to_xml()
+        assert '<ram:URIID schemeID="EM">contact@example.com</ram:URIID>' in xml
+        assert '<ram:URIID schemeID="0225">123456789</ram:URIID>' not in xml
+
+    def test_discount_reason_code(self):
+        xml = _facture(discount=10).to_xml()
+        assert "<ram:ReasonCode>95</ram:ReasonCode>" in xml
+
+    @pytest.mark.parametrize("discount", [None, 10])
+    def test_valid_against_xsd_and_schematrons(self, discount):
+        xml = _facture(discount=discount).to_xml().encode("utf-8")
+        assert get_level(etree.fromstring(xml), "factur-x") == "en16931"
+        assert xml_check_xsd(xml)
+        assert xml_check_schematron(xml, check_option="fr-ctc")

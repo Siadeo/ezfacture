@@ -4,7 +4,7 @@ import winreg
 import sys
 from pathlib import Path
 import logging
-import json, os, hashlib
+import json, os, hashlib, re
 from config import LOCAL_FILE
 
 logger = logging.getLogger(__name__)
@@ -103,6 +103,23 @@ def add_pdfa_srgb_output_intent(pdf_path):
             pdf.save(str(pdf_path))
     except Exception as e:
         logger.error(f"Échec de l'ajout de l'OutputIntent PDF/A sur {pdf_path} : {e}")
+
+
+def sync_pdf_producer(pdf_path):
+    """Aligne le producteur du dictionnaire Info du PDF sur celui du XMP (PDF/A).
+
+    La lib facturx écrit son propre producteur dans le XMP mais conserve celui
+    d'Excel dans le dictionnaire Info, alors que les deux doivent être identiques.
+    """
+    import pikepdf
+
+    with pikepdf.open(str(pdf_path), allow_overwriting_input=True) as pdf:
+        xmp = pdf.Root.Metadata.read_bytes().decode("utf-8")
+        match = re.search(r"<pdf:Producer>(.*?)</pdf:Producer>", xmp)
+        if match is None:
+            raise ValueError(f"Producteur absent du XMP de {pdf_path}")
+        pdf.docinfo["/Producer"] = match.group(1)
+        pdf.save(str(pdf_path))
 
 
 def close_all_protected_sheets():

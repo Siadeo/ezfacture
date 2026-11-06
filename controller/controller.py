@@ -11,7 +11,7 @@ from datetime import datetime
 import logging
 import json
 from facturx import generate_from_file, xml_check_xsd
-from tools.utils import check_format_obj, resource_path, close_all_protected_sheets, disable_win_auto_printer_manage, set_default_printer, get_microsoft_print_to_pdf_printer, cleanup_draft_pdfs
+from tools.utils import check_format_obj, resource_path, close_all_protected_sheets, disable_win_auto_printer_manage, set_default_printer, get_microsoft_print_to_pdf_printer, cleanup_draft_pdfs, sync_pdf_producer
 from controller import Ezfacture, EzfactureAlreadyExistsError, Eztransaction
 from controller.backends import get_numbering_backend
 from controller.constantes import DRAFT_PATH
@@ -416,6 +416,22 @@ class Controller:
             kw["postalzone"] = str(pz).strip()
         return kw
 
+    def check_vat(self, party, role, cell=None):
+        """
+        Bloque la validation si le numéro de TVA ne correspond pas au SIREN.
+        :param party: Entity à contrôler
+        :param role: str, "du vendeur" ou "de l'acheteur" (pour le message)
+        :param cell: str, optionnel, cellule de l'onglet document à signaler
+        """
+        if party.vat_matches_siren():
+            return
+        msg = (f"Le numéro de TVA {role} ({party.tax_scheme_id}) ne correspond pas "
+               f"à son SIREN ({party.siren}). TVA attendue : {party.expected_vat}.")
+        if cell:
+            self.show_error_excel(cell, msg)
+        self.view.show_feedback(txt=msg, message_type="error", stack=True)
+        raise ValueError(msg)
+
     @staticmethod
     def increment_fact_number(invoice_number):
         parts = invoice_number.split('-')
@@ -615,6 +631,10 @@ class Controller:
                 logger.exception(msg)
                 raise ValueError(msg)
 
+            # Le numéro de TVA doit contenir le SIREN de l'entreprise (contrôle ID-TVA-SIREN)
+            self.check_vat(self.model.seller_party, "du vendeur")
+            self.check_vat(self.model.buyer_party, "de l'acheteur", cell="buyer_tax_scheme_id")
+
             try:
                 self.model.issue_date = self.get_value(self.doc.onglet, "date_facture", data_type="date")
                 if self.doc.type_doc == 'facture':
@@ -771,6 +791,22 @@ class Controller:
             logger.exception(f"Erreur mentions légales : {e}")
             raise ValueError(e)
 
+        # Identité juridique du vendeur (MEN-12) : forme et capital (REG), RCS (ABL).
+        # Facultatif (micro-entreprises). Les brouillons créés avant l'ajout de la
+        # cellule REG ne la contiennent pas : get_value bloquerait alors l'interface.
+        try:
+            if self.named_cell_exists("REG", self.doc.onglet_config):
+                reg = self.get_value(self.doc.onglet_config, "REG", required=False)
+                if reg:
+                    self.model.notes.append({"code": "REG", "content": reg})
+            rcs = self.get_value(self.doc.onglet_config, "RCS", required=False)
+            if rcs:
+                self.model.notes.append({"code": "ABL", "content": f"RCS {rcs}"})
+        except BaseException as e:
+            self.view.show_feedback(txt=str(e), message_type="error", stack=True)
+            logger.exception(f"Erreur identité juridique : {e}")
+            raise ValueError(e)
+
         # Note libre de l'utilisateur (BT-22), lue dans la cellule note_facture / note_avoir
         # de l'onglet document. Champ facultatif, sans code sujet (BT-21).
         try:
@@ -810,6 +846,7 @@ class Controller:
                 # 5. Incorporation du XML dans le PDF
                 self.view.show_feedback(txt="-> Incorporation du xml...", stack=True)
                 tx.do(step_fn=lambda: generate_from_file(pdf_file=self.doc.pdf_path, xml=self.model.xml, flavor='factur-x', check_schematron=True))
+                tx.do(step_fn=lambda: sync_pdf_producer(self.doc.pdf_path))
 
                 # 6. Réservation du numéro (LOCAL : PREPARE / API : création serveur)
                 prepared_entry_or_void = tx.do(

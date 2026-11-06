@@ -32,7 +32,7 @@ def _make_version_info(version_str):
         StringStruct(u'FileDescription',  u'EzFacture - Logiciel de facturation'),
         StringStruct(u'FileVersion',      u'{vdot}'),
         StringStruct(u'InternalName',     u'ezfacture'),
-        StringStruct(u'LegalCopyright',   u''),
+        StringStruct(u'LegalCopyright',   u'Copyright (c) 2026 Siadeo'),
         StringStruct(u'OriginalFilename', u'ezfacture-{version_str}.exe'),
         StringStruct(u'ProductName',      u'EzFacture'),
         StringStruct(u'ProductVersion',   u'{vdot}'),
@@ -66,7 +66,7 @@ a = Analysis(
     hookspath=[str(project_path / 'hooks')],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['controller.backends.api'],
+    excludes=['controller.backends.api', 'xlwings.pro'],
     noarchive=False,
     optimize=0,
 )

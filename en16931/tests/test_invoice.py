@@ -1,3 +1,4 @@
+# Fichier modifié par Siadeo (2026) par rapport à python-en16931 (Invinet Sistemes, Apache-2.0). Voir en16931/NOTICE.
 import os
 import pytest
 from datetime import datetime

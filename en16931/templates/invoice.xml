@@ -1,4 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
+{# Fichier modifié par Siadeo (2026) par rapport à python-en16931 (Invinet Sistemes, Apache-2.0). Voir en16931/NOTICE. #}
 <rsm:CrossIndustryInvoice xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100"
     xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100"
     xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"

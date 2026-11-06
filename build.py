@@ -11,6 +11,7 @@ ROOT = Path(__file__).parent
 DIST = ROOT / "dist"
 
 DATA_FILES = ["clients.xlsx", "produits.xlsx", "config.xlsx"]
+LEGAL_FILES = ["LICENSE", "LICENSE.md", "THIRD_PARTY_LICENSES.txt"]
 FOLDERS_TO_COPY = ["templates", "images", "assets"]
 DIRS_TO_CREATE = ["brouillons", "pdf"]
 
@@ -42,7 +43,7 @@ def copy_folders():
 
 def copy_data_files():
     print("==> Copie des fichiers de données...")
-    for filename in DATA_FILES:
+    for filename in DATA_FILES + LEGAL_FILES:
         src = ROOT / filename
         if src.exists():
             shutil.copy2(src, DIST / filename)

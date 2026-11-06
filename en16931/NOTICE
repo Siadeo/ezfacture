@@ -1,0 +1,31 @@
+Ce dossier contient une version modifiée de python-en16931.
+
+python-en16931
+Copyright (C) 2018 Invinet Sistemes
+https://github.com/invinet/python-en16931
+Distribué sous licence Apache, version 2.0 (voir LICENSE.txt dans ce dossier).
+
+Version d'origine : commit 5e3a4a6 (version 0.2).
+
+Modifications apportées par Siadeo (2026)
+
+Fichiers modifiés :
+- __init__.py : retrait des imports de b2brouter et validex.
+- entity.py : valeurs par défaut pour endpoint et endpoint_scheme, SIREN,
+  contrôle du numéro de TVA français.
+- invoice.py : dates au format AAAAMMJJ, date de livraison (BT-72), pays de
+  livraison (BT-80), correction du calcul de TVA quand une taxe est absente.
+- invoice_line.py : remise de ligne, TVA sur les débits, motif et code
+  d'exonération, prise en compte d'un taux de TVA à 0, annotations de type.
+- tax.py : motifs et codes d'exonération, franchise en base de TVA,
+  TVA sur les débits.
+- templates/invoice.xml : remplacé par un template Factur-X (syntaxe CII).
+- tests/test_entity.py, tests/test_invoice.py, tests/test_tax.py : tests
+  ajoutés pour ces évolutions.
+
+Fichiers renommés :
+- templates/invoice-UBL.xml : template UBL d'origine, ex-templates/invoice.xml,
+  sans modification de contenu.
+
+Fichiers retirés :
+- b2brouter.py, validex.py.

@@ -127,7 +127,8 @@ python build.py
 Le script :
 1. exécute `pyinstaller main.spec --clean` ;
 2. copie les dossiers `templates/`, `images/` et `assets/` dans `dist/` ;
-3. copie les fichiers de données `clients.xlsx`, `produits.xlsx`, `config.xlsx` ;
+3. copie les fichiers de données `clients.xlsx`, `produits.xlsx`, `config.xlsx`
+   et les fichiers de licence `LICENSE`, `LICENSE.md`, `THIRD_PARTY_LICENSES.txt` ;
 4. crée les dossiers de travail `brouillons/` et `pdf/`.
 
 Le résultat se trouve dans `dist/` : lancez l'exécutable
@@ -143,6 +144,7 @@ Puis, **manuellement**, copiez à côté de `dist/ezfacture-<version>.exe` :
 
 - les dossiers `templates/`, `images/` et `assets/`
 - les fichiers `clients.xlsx`, `produits.xlsx`, `config.xlsx`
+- les fichiers de licence `LICENSE`, `LICENSE.md`, `THIRD_PARTY_LICENSES.txt`
 - créez les dossiers vides `brouillons/` et `pdf/`
 
 > Sans ces fichiers, l'exécutable démarre mais ne trouve pas ses modèles ni ses
@@ -150,5 +152,7 @@ Puis, **manuellement**, copiez à côté de `dist/ezfacture-<version>.exe` :
 
 ## Licence
 
-Distribué sous licence Apache, version 2.0. Voir [LICENSE.md](LICENSE.md).
+Distribué sous licence Apache, version 2.0 : voir [LICENSE](LICENSE).
+Les composants tiers, dont une version modifiée de python-en16931, sont détaillés
+dans [LICENSE.md](LICENSE.md).
 
